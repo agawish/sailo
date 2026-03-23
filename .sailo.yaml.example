@@ -1,0 +1,31 @@
+# .sailo.yaml — project configuration for sAIlo workspaces
+# Place this file in your project root and check it into version control.
+version: 1
+
+# Base Docker image for workspaces.
+# If omitted, sailo detects from existing Dockerfile or project language.
+# image: node:22-slim
+
+# Services started alongside each workspace (via Docker Compose).
+# Each workspace gets its own isolated service instances.
+# services:
+#   - postgres:16
+#   - redis:7
+
+# Port mappings. Container ports are mapped to auto-assigned host ports.
+# ports:
+#   3000: auto
+#   5432: auto
+
+# Environment variables set in every workspace.
+# env:
+#   NODE_ENV: development
+#   DATABASE_URL: postgres://postgres:postgres@db:5432/app
+
+# Commands to run after workspace container starts.
+# setup:
+#   - npm install
+#   - npm run db:migrate
+
+# Test command used by `sailo ship` before creating a PR.
+# test: npm test
