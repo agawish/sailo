@@ -2,6 +2,15 @@
 // and user (~/.sailo/config.yaml) configuration files.
 package config
 
+import (
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"gopkg.in/yaml.v3"
+)
+
 // ProjectConfig represents the .sailo.yaml project configuration.
 type ProjectConfig struct {
 	Version  int               `yaml:"version" mapstructure:"version"`
@@ -14,7 +23,38 @@ type ProjectConfig struct {
 }
 
 // LoadProjectConfig loads .sailo.yaml from the given directory.
+// Returns nil, nil if the file does not exist (not an error).
 func LoadProjectConfig(dir string) (*ProjectConfig, error) {
-	// Returns nil config (not error) if file doesn't exist — that's normal
-	return &ProjectConfig{Version: 1}, nil
+	path := filepath.Join(dir, ".sailo.yaml")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("read project config: %w", err)
+	}
+
+	var cfg ProjectConfig
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("parse project config: %w", err)
+	}
+
+	if cfg.Version == 0 {
+		cfg.Version = 1
+	}
+	return &cfg, nil
+}
+
+// SaveProjectConfig writes a ProjectConfig to .sailo.yaml in the given directory.
+func SaveProjectConfig(dir string, cfg *ProjectConfig) error {
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("marshal project config: %w", err)
+	}
+
+	path := filepath.Join(dir, ".sailo.yaml")
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return fmt.Errorf("write project config: %w", err)
+	}
+	return nil
 }
