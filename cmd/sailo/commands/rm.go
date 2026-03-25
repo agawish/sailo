@@ -18,12 +18,10 @@ Example:
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		wsID := args[0]
-		keepBranch, _ := cmd.Flags().GetBool("keep-branch")
-
-		fmt.Fprintf(cmd.OutOrStdout(), "sailo rm: not yet implemented\n")
-		fmt.Fprintf(cmd.OutOrStdout(), "\n")
-		fmt.Fprintf(cmd.OutOrStdout(), "  Workspace:    %s\n", wsID)
-		fmt.Fprintf(cmd.OutOrStdout(), "  Keep branch:  %v\n", keepBranch)
+		if err := deps.manager.Remove(cmd.Context(), wsID); err != nil {
+			return err
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "Workspace %s removed\n", wsID)
 		return nil
 	},
 }

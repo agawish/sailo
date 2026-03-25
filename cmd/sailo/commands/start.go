@@ -16,9 +16,10 @@ Example:
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		wsID := args[0]
-		fmt.Fprintf(cmd.OutOrStdout(), "sailo start: not yet implemented\n")
-		fmt.Fprintf(cmd.OutOrStdout(), "\n")
-		fmt.Fprintf(cmd.OutOrStdout(), "  Workspace: %s\n", wsID)
+		if err := deps.manager.Start(cmd.Context(), wsID); err != nil {
+			return err
+		}
+		fmt.Fprintf(cmd.OutOrStdout(), "Workspace %s started\n", wsID)
 		return nil
 	},
 }

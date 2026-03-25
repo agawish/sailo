@@ -28,7 +28,23 @@ func Execute() error {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable verbose output")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose output")
 
 	rootCmd.SetVersionTemplate(fmt.Sprintf("sAIlo %s\n", version))
+
+	// Initialize dependencies for commands that need the full dep chain.
+	// Commands like init, config, help, and version skip this.
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		switch cmd.Name() {
+		case "version", "help", "init", "config", "show", "set", "sailo":
+			return nil
+		}
+		return initDeps()
+	}
+
+	rootCmd.PersistentPostRun = func(cmd *cobra.Command, args []string) {
+		if deps.store != nil {
+			deps.store.Close()
+		}
+	}
 }

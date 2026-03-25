@@ -161,6 +161,34 @@ func (s *Store) Close() error {
 	return s.db.Close()
 }
 
+// UsedHostPorts returns all host ports allocated to non-removed workspaces.
+func (s *Store) UsedHostPorts() ([]int, error) {
+	rows, err := s.db.Query("SELECT ports FROM workspaces WHERE state != ?", string(StateRemoved))
+	if err != nil {
+		return nil, fmt.Errorf("query used ports: %w", err)
+	}
+	defer rows.Close()
+
+	var allPorts []int
+	for rows.Next() {
+		var portsJSON string
+		if err := rows.Scan(&portsJSON); err != nil {
+			return nil, fmt.Errorf("scan ports: %w", err)
+		}
+		var portMap map[int]int
+		if err := json.Unmarshal([]byte(portsJSON), &portMap); err != nil {
+			continue // skip malformed entries
+		}
+		for _, hp := range portMap {
+			allPorts = append(allPorts, hp)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate ports: %w", err)
+	}
+	return allPorts, nil
+}
+
 // scanner is an interface satisfied by both *sql.Row and *sql.Rows.
 type scanner interface {
 	Scan(dest ...interface{}) error
